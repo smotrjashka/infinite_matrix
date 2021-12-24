@@ -22,25 +22,25 @@ struct Matrix{
     }
 
         struct MatrixCell{
-            MatrixCell(Matrix<T, def_value> matrix_ptr, unsigned int row_number, unsigned int index)
+            MatrixCell(Matrix<T, def_value>* matrix_ptr, unsigned int row_number, unsigned int index)
                     : row_number_(row_number), index_(index), value_(def_value), matrix_ptr_(matrix_ptr){
 
             };
-            MatrixCell(Matrix<T, def_value> matrix_ptr, unsigned int row_number, unsigned int index, T value)
+            MatrixCell(Matrix<T, def_value>* matrix_ptr, unsigned int row_number, unsigned int index, T value)
                     : row_number_(row_number), index_(index), value_(value), matrix_ptr_(matrix_ptr){
 
             };
 
             MatrixCell(MatrixCell& matrixCell){
-                row_number_ = matrixCell.row_number_;
-                index_ = matrixCell.position_in_row_;
-                value_ = matrixCell.value_;
+                row_number_ = matrixCell.RowNumber();
+                index_ = matrixCell.Index();
+                value_ = matrixCell.Value();
             };
 
             MatrixCell(const MatrixCell& matrixCell){
-                row_number_ = matrixCell.row_number_;
-                index_ = matrixCell.position_in_row_;
-                value_ = matrixCell.value_;
+                row_number_ = matrixCell.RowNumber();
+                index_ = matrixCell.Index();
+                value_ = matrixCell.Value();
             };
 
             bool is_same_index(unsigned int row_number, unsigned int index){
@@ -80,6 +80,7 @@ struct Matrix{
                 return row_number_==row_number;
             }
 
+
         private:
             unsigned int row_number_;
             unsigned int index_;
@@ -94,7 +95,7 @@ struct Matrix{
                                                 row_index_(row_index){
             for(MatrixCell* matrix_cell_ptr : matrix_ptr_->rows_) {
                 if (matrix_cell_ptr->is_same_row(row_index_)){
-                    row_.insert(matrix_ptr);
+                    row_.insert(matrix_cell_ptr);
                 }
             }
         }
@@ -105,10 +106,12 @@ struct Matrix{
                     return *matrix_cell_ptr;
                 }
             }
-            MatrixCell* matrix_cell_new_ptr = new MatrixCell(matrix_ptr_, row_index_, left_index);
-            matrix_ptr_->rows_.insert(matrix_cell_new_ptr);
-            return *matrix_cell_new_ptr;
+            auto matrix_cell_new = new MatrixCell(matrix_ptr_, row_index_, left_index);
+            matrix_ptr_->rows_.insert(matrix_cell_new);
+            return *matrix_cell_new;
         }
+
+
 
     private:
         Matrix* matrix_ptr_;
@@ -118,6 +121,7 @@ struct Matrix{
 
     MatrixRow& operator[](unsigned int right_index ){
 
+        return *(new MatrixRow(this, right_index));
 
     } ;
 
@@ -136,12 +140,8 @@ struct Matrix{
 
         // Prefix increment
         Iterator& operator++() {
-            for (auto it = row_ptrs_.begin(); it < row_ptrs_.end(); it++) {
-                if ((*it)==m_ptr_){
-                    m_ptr_ == *(it++);
-                }
-            }
-            return m_ptr_;
+            m_ptr_ = *((row_ptrs_.find(m_ptr_))++);
+            return *this;
         }
 
         /*// Postfix increment
@@ -162,8 +162,8 @@ struct Matrix{
         }
 
 
-        friend bool operator== (const Iterator& a, const Iterator& b) { return a.m_ptr == b.m_ptr; };
-        friend bool operator!= (const Iterator& a, const Iterator& b) { return a.m_ptr != b.m_ptr; };
+        friend bool operator== (const Iterator& a, const Iterator& b) { return a.m_ptr_ == b.m_ptr_; };
+        friend bool operator!= (const Iterator& a, const Iterator& b) { return a.m_ptr_ != b.m_ptr_; };
 
     private:
         std::set<MatrixCell*> row_ptrs_;
