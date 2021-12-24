@@ -134,14 +134,17 @@ struct Matrix{
         using pointer           = MatrixCell*;  // or also value_type*
         using reference         = MatrixCell&;  // or also value_type&
 
-        Iterator(std::set<MatrixCell*> row_ptrs, pointer ptr) : m_ptr_(ptr), row_ptrs_(row_ptrs) {}
+        Iterator(std::set<MatrixCell*>* row_ptrs_ptr, pointer ptr) : m_ptr_(ptr), row_ptrs_ptr_(row_ptrs_ptr) {}
 
         pointer operator->() { return m_ptr_; }
 
         // Prefix increment
         Iterator& operator++() {
-            m_ptr_ = *((row_ptrs_.find(m_ptr_))++);
-            return *this;
+            auto it = (*row_ptrs_ptr_).find(m_ptr_);
+            if ( it !=(*row_ptrs_ptr_).end()) {
+                m_ptr_ = *(it++);
+            }
+                return *this;
         }
 
         /*// Postfix increment
@@ -166,14 +169,14 @@ struct Matrix{
         friend bool operator!= (const Iterator& a, const Iterator& b) { return a.m_ptr_ != b.m_ptr_; };
 
     private:
-        std::set<MatrixCell*> row_ptrs_;
+        std::set<MatrixCell*>* row_ptrs_ptr_;
         pointer m_ptr_;
     };
 
 
 
-    Iterator begin() { return Iterator(rows_, *(rows_.begin())); }
-    Iterator end()   { return Iterator(rows_, *(rows_.end())); }
+    Iterator begin() { return Iterator(&rows_, *(rows_.begin())); }
+    Iterator end()   { return Iterator(&rows_, *(rows_.end())); }
 
 private:
     std::set<MatrixCell*> rows_;
